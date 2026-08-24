@@ -17,6 +17,16 @@ Get comfortable configuring, enforcing, and validating application control polic
 - Windows PowerShell (Administrator)
 - Application Identity service (`AppIDSvc`)
 
+## Tools I Used
+
+| Tool | What It Does | Why I Used It |
+|------|--------------|----------------|
+| **Local Security Policy (secpol.msc)** | Manages local security settings on a Windows machine | Where AppLocker rules actually get built |
+| **Windows AppLocker** | Application control / allow-deny listing engine | Core of the whole lab |
+| **Windows PowerShell (Admin)** | Command-line management | Starting services, forcing policy updates, testing enforcement |
+| **Application Identity Service (AppIDSvc)** | Background service AppLocker depends on | Found out the hard way that rules do nothing without it running |
+| **gpupdate /force** | Forces Group Policy to refresh immediately | Didn't want to wait for the normal refresh cycle |
+
 ## What I Did
 
 1. Opened Local Security Policy → `Application Control Policies` → `AppLocker` → `Executable Rules` and looked at the default allow list (Everyone can run stuff in Program Files, Everyone can run stuff in the Windows folder, Administrators can run anything).
@@ -30,6 +40,27 @@ Get comfortable configuring, enforcing, and validating application control polic
 
 Seeing that block message pop up after all the setup was honestly the most satisfying part — it meant the policy wasn't just sitting there configured, it was actually doing its job.
 
+## What's in This Repo
+
+```
+allow-deny-list-lab/
+├── README.md                          # This file
+├── lab-report.md                      # Detailed breakdown of findings
+├── findings/
+│   ├── executable-rules-list.txt      # Final AppLocker rule set
+│   └── enforcement-test-results.txt   # Block message evidence
+├── screenshots/
+│   ├── 01-default-rules.png           # Default AppLocker rules
+│   ├── 02-path-rule-creation.png      # Creating the regedit deny rule
+│   ├── 03-file-hash-rule.png          # Creating the firefox deny rule
+│   ├── 04-appidsvc-start.png          # Starting the Application Identity service
+│   ├── 05-gpupdate.png                # Forcing the policy update
+│   ├── 06-regedit-blocked-cli.png     # Blocked from PowerShell
+│   └── 07-firefox-blocked-gui.png     # Blocked from the Start menu
+└── scripts/
+    └── verify-appidsvc.ps1            # Quick check that the dependency service is running
+```
+
 ## Skills I Picked Up
 - **Building allow/deny rules in AppLocker**, and understanding the tradeoffs between path-based rules (simple, but easy to get around if a file moves) and file hash rules (more rigid, tied to the exact binary).
 - **Group Policy fundamentals** — how settings in Local Security Policy actually become enforced behavior, and how to push them out immediately with `gpupdate /force` instead of waiting.
@@ -37,11 +68,6 @@ Seeing that block message pop up after all the setup was honestly the most satis
 - **Reading PowerShell error output** and understanding what it's telling you (`NativeCommandFailed`, `ApplicationFailedException`) instead of just seeing red text and panicking.
 - **Actually testing my own work** — configuring a rule isn't the finish line. I tried to break it from two different angles (command line and the Start menu GUI) before I trusted that it worked.
 - **Writing this up clearly**, with screenshots, so someone else (or future me) can follow exactly what happened and why.
-
-## Where I'm Coming From
-I'm making the jump into cybersecurity from a background in **healthcare**. It's a different field on paper, but a lot of the muscle memory carries over — following procedures carefully, protecting sensitive information, staying calm when something isn't working the way it's supposed to. I'm currently studying for **CompTIA Security+** and building labs like this one to get real hands-on reps in, since that's what I'm missing on paper right now compared to my experience.
-
-I'm still early in this, and I know it. I don't have all the answers yet, and I'm not pretending to — but I'm putting in the time to actually build and break things rather than just read about them, and I want that to come through in this portfolio.
 
 ## How This Applies in the Real World
 I didn't want this to just be a checkbox exercise, so here's why I actually think this matters outside of a lab:
@@ -55,6 +81,11 @@ Blocking `regedit.exe` specifically is something I've actually seen mentioned as
 There's also a compliance side to this that I didn't fully appreciate going in — frameworks like PCI-DSS and NIST actually call out application whitelisting as something organizations are expected to have, so this isn't just a "hacker skill," it's something that shows up in audits too.
 
 And the part that stuck with me most: what I did here on one laptop through Local Security Policy is the exact same mechanism (AppLocker) that gets pushed out to thousands of machines at once through Group Policy in a real company. I was just doing it small, on one machine, so I could actually understand what's happening before trying to do it at scale.
+
+## Where I'm Coming From
+I'm making the jump into cybersecurity from a background in **healthcare**. It's a different field on paper, but a lot of the muscle memory carries over — following procedures carefully, protecting sensitive information, staying calm when something isn't working the way it's supposed to. I'm currently studying for **CompTIA Security+** and building labs like this one to get real hands-on reps in, since that's what I'm missing on paper right now compared to my experience.
+
+I'm still early in this, and I know it. I don't have all the answers yet, and I'm not pretending to — but I'm putting in the time to actually build and break things rather than just read about them, and I want that to come through in this portfolio.
 
 ## What I Want to Learn Next
 - Other AppLocker rule types I haven't touched yet — publisher rules, script rules, packaged app rules
